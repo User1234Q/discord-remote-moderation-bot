@@ -29,11 +29,14 @@ app.post('/mod-command', async (req, res) => {
         // Fetch the server using your Guild ID
         const guild = await client.guilds.fetch(process.env.GUILD_ID);
 
-        if (action === 'kick') {
-            const member = await guild.members.fetch(user_id);
+             if (action === 'kick') {
+            // First look in the local cache instantly, fallback to a fetch only if needed
+            let member = guild.members.cache.get(user_id);
+            if (!member) member = await guild.members.fetch(user_id);
+            
             await member.kick(modReason);
             return res.status(200).json({ status: `Successfully kicked user ${user_id}` });
-        } 
+        }
         else if (action === 'ban') {
             // Bans directly by user ID, even if they aren't in the server
             await guild.members.ban(user_id, { reason: modReason });
