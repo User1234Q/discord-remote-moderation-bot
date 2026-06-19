@@ -63,7 +63,7 @@ then copy and paste this
   }
 }
 ```
-### just press ```Ctrl+O``` to save a file and then press y and now press ```Ctrl+X```
+### just press ```Ctrl+O``` to save a file and then press ```y``` and now ```Enter``` then press ```Ctrl+X```
 
 ## 1.3 almost finished. Create a just new index.js
 ``` nano index.js```
@@ -131,6 +131,7 @@ then its done
 ## 2. Create your own Repository after start setting up on render from other step
 
 first create your own repository on github privately nor public
+
 <img width="330" height="383" alt="image" src="https://github.com/user-attachments/assets/c55bb880-d873-4909-8db7-a8f122df07ec" />
 
 # i havent finishing our readme. so i might have to finish it tomorrow ;)
@@ -140,6 +141,7 @@ first create your own repository on github privately nor public
 # Donations Support
 
 Monero/XMR address: 42JDxFhoqZ2ACHQ2DUqGgeikwZFffQC2NAXgyUQqTxsXbWPMAdJSndK6zvihK1dhqeTev2zwnuipS1KGodUHHa2UCYk2SdC
+
 <img width="240" height="240" alt="image" src="https://github.com/user-attachments/assets/a85184c8-80d6-41c3-8b8e-353cce16c39c" />
 
 so by the way have a nice tip. so thanks for our support donations! ^^
