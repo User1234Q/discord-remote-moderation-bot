@@ -1,0 +1,14 @@
+{
+  "name": "discord-bot-project",
+  "version": "1.0.0",
+  "description": "Discord bot with external kick and ban commands",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
