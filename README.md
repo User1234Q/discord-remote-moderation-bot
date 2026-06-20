@@ -1,12 +1,14 @@
 # Discord Remote Moderation bot for only Kick/Ban
-if you want to contact me on discord
-Discord username: inshoock
+> [!NOTE]
+> If you want to contact me on discord
+> Discord username: inshoock
 
-## Disclaimer
-This tool was made for educational/test purposes only. 
-The developer is not responsible for bad actions that originate from this tool. 
-Publishing this tool under your name will result in a DMCA takedown. 
-You can distribute copies of it, but just don't change the code as if it was your own.
+> [!CAUTION]
+> This tool was made for educational/test purposes only. The developer is not responsible for bad actions that originate from this tool. 
+>
+> Publishing this tool under your name will result in a **DMCA takedown**. 
+>
+> You can distribute copies of it, as long you don't change the code as if it was your own.
 
 ## Features
 - **External CLI Control**: Kick or ban users directly from your computer's terminal.
@@ -18,36 +20,49 @@ You can distribute copies of it, but just don't change the code as if it was you
 - `package.json` - Project dependency registration configuration.
 - `.env` - (Hidden/Ignored) Local storage for sensitive API tokens and passwords.
 
-## requirements
-- your own discord bot/bot token
-- Render
-- "curl" Command
+## Requirements
+- Your own discord bot and a bot token (Get a new token via [Discord Developer Portal](https://discord.dev))
+- Render (Hosting/Deploying platform) or any hosting platform (somewhat supported, but it's not even quite tested yet)
+- Knows how to use `curl` command
+- Has `git` installed (may be optional if you're planning to host locally)
 
-# installation
+> [!NOTE]
+> `curl` is preinstalled on Windows and MacOS, but some Linux distributions (such as Fedora) has it pre-installed,
+> otherwise you may need to install the corresponding packages.
+>
+> Oh also, `git` is not even pre-installed anywhere, you need to install manually. For MacOS, simply try running `git` and it should gives a prompt to install Xcode command tools, otherwise you already have it installed.
+
+
+# Installation
 
 ## 1. Create the new folder (Example: ~/DiscordBot)
 
+To create a new folder, you need to run the following:
+
+```bash
+$ mkdir -p ~/DiscordBot # You can name it yourself if you want
+$ cd ~/DiscordBot # Enters the following directory
+```
+
+> [!NOTE]
+> On Windows, some commands may be different depeneding if you're inside Powershell or CMD. 
+
+
 ## 1.2 Create a new .env (Local Configuration)
 
-``` nano .env```
-
-and copy and paste this
-
-```
+Create a new file named `.env` and write (or copy-paste) the following:
+```env
 DISCORD_TOKEN=your_discord_bot_token
 GUILD_ID=your_discord_server_id
 SECRET_PASSWORD=your_api_security_password
 PORT=10000
 ```
-### just press ```Ctrl+O``` to save a file and then press ```y``` and now ```Enter``` then press ```Ctrl+X```
 
-## Create a file package.JSON
+## 1.3 Create a file package.json
 
-type
-``` nano package.json``
-then copy and paste this
+Create a new file named `package.json` and write (or copy-paste) the following:
 
-```
+```json
 {
   "name": "EXAMPLE",
   "version": "1.0.0",
@@ -63,12 +78,26 @@ then copy and paste this
   }
 }
 ```
-### just press ```Ctrl+O``` to save a file and then press ```y``` and now ```Enter``` then press ```Ctrl+X```
 
-## 1.3 almost finished. Create a just new index.js
-``` nano index.js```
-then copy and paste this
+## 1.4 Create `.gitignore`
+
+> [!CAUTION]
+> This is the most important file where it tells git what to don't commit files/folders. Otherwise it may end up to the repository (and eventually leaking the whole token, which may lead to Discord to automatically revoke the token as a security measure)
+>
+> It is obviously advised to don't skip this section.
+
+Create a new file named `.gitignore` with the following content:
+```gitignore
+node_modules
+.env
 ```
+
+
+## 1.5 Almost finished, simply create `index.js`
+
+Create a new file named `index.js` and write (or copy-paste) the following
+
+```js
 require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express');
@@ -126,15 +155,20 @@ client.once('ready', () => {
 
 client.login(process.env.DISCORD_TOKEN);
 ```
-then its done
+
+Then you're done setting up the bot, the next section will be teaching how to create a new repository on Github,
+how to commit change and push to your repository.
 
 ## 2. Create your own Repository after start setting up on render from other step
 
-first create your own repository on github privately nor public
+First create your own repository on github either public or private
 
 <img width="330" height="383" alt="image" src="https://github.com/user-attachments/assets/c55bb880-d873-4909-8db7-a8f122df07ec" />
 
 ## 2.1 Generate your new Token access
+> [!NOTE]
+> If you're using Github's CLI, you can skip this section since it manages the ssh and the access token automatically by itself.
+
 Go to Settings in github, at the bottom of the navigation sidebar from the settings page there's a section named Developer Settings.
 
 Then click Personal Access Token then select Tokens (classic)
@@ -143,11 +177,46 @@ And then you need to click this dropdown
 <img width="822" height="508" alt="image" src="https://github.com/user-attachments/assets/fa04547e-902b-4074-b490-5d97e25a9a66" />
 
 (then select the classic ones, not the fine-grained)
-Remember to make sure you only need the ```repo``` permission, since that's the only permission that needed
+Remember to make sure you only need the `repo` permission, since that's the only permission that needed
 
-and now its done. you can copy your new token
+When you're done, remember to copy the token and save somewhere that *is* safe to store here (as long you don't accidentally leak your own token) if need to constantly push changes.
 
-*Coming soon*
+> [!TIP]
+> You can use `ssh` instead, which can remove the annoyances but it requires settings up ssh.
+> Please refer to Github Docs:
+>
+> https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+>
+> https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
+
+### 2.1 Commiting changes
+
+To commit changes, we need to tell Git which files to be added as commit, you need to run the following:
+```
+git add .
+```
+
+Then do `git commit`, the editor will open depeneding what have you configured Git.
+
+> And remember to save then exit to ensure it writes the commit so we could push changes to the repository.
+
+### 2.2 Pushing changes to Github repository
+
+To push changes, you need to add the remote origin pointing to your repository. To do that you need to run the following:
+```bash
+# Add a new remote
+$ git remote add origin https://github.com/OWNER/REPOSITORY.git
+
+# Verify if the new remote was added and most have (fetch) and (push)
+$ git remote -v
+> origin  https://github.com/OWNER/REPOSITORY.git (fetch)
+> origin  https://github.com/OWNER/REPOSITORY.git (push)
+```
+
+> For more information check ["Manage remote repositories"](https://docs.github.com/en/get-started/git-basics/managing-remote-repositories) on Github Docs
+
+The last step is to simply run `git push -u origin`, which tells Git to push changes to the remote (origin) repository. And it's good to go.
+
 
 # Donations Support
 
