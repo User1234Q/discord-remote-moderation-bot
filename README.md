@@ -134,9 +134,20 @@ first create your own repository on github privately nor public
 
 <img width="330" height="383" alt="image" src="https://github.com/user-attachments/assets/c55bb880-d873-4909-8db7-a8f122df07ec" />
 
-# i havent finishing our readme. so i might have to finish it tomorrow ;)
-# so you may contact me on discord from our first page!
+## 2.1 Generate your new Token access
+Go to Settings in github, at the bottom of the navigation sidebar from the settings page there's a section named Developer Settings.
 
+Then click Personal Access Token then select Tokens (classic)
+And then you need to click this dropdown
+
+<img width="822" height="508" alt="image" src="https://github.com/user-attachments/assets/fa04547e-902b-4074-b490-5d97e25a9a66" />
+
+(then select the classic ones, not the fine-grained)
+Remember to make sure you only need the ```repo``` permission, since that's the only permission that needed
+
+and now its done. you can copy your new token
+
+*Coming soon*
 
 # Donations Support
 
