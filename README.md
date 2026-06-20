@@ -39,7 +39,7 @@ GUILD_ID=your_discord_server_id
 SECRET_PASSWORD=your_api_security_password
 PORT=10000
 ```
-### just press ```Ctrl+O``` to save a file and then press y and now press ```Ctrl+X```
+### just press ```Ctrl+O``` to save a file and then press ```y``` and now ```Enter``` then press ```Ctrl+X```
 
 ## Create a file package.JSON
 
