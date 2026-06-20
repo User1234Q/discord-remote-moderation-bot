@@ -217,6 +217,42 @@ $ git remote -v
 
 The last step is to simply run `git push -u origin`, which tells Git to push changes to the remote (origin) repository. And it's good to go.
 
+## 3. Sign up and Setting up on a Host website
+
+Go to ["Render"](https://render.com) Website and then click Start for Free and now you can register/Create a new account
+
+*if you cannot click "Start For Free", you can click this ["Start For Free"](https://dashboard.render.com/register) and they can take you to Redirect to right here (to the Sign up Render website)*
+
+if you done creating your new account on render. then skip the survey and select Web Service then connect to your Github Repository
+
+if you done connecting to your Git Repository. well Select the repository since that you've created a new Repository when you want to deploy it
+
+### 3.1 Create a new Project on Render for the Web Service since you just selected your new git repository
+
+Give your project a unique name and then Set your runtime and commands: *Ensure the correct Branch (e.g., main), Build Command* and Start Command are set. Render will usually auto-detect your framework
+
+### 3.2 Add Environment Variables on your new project
+
+Under the Advanced or Environment tab, add/import your `.env` keys (like API keys or database strings)
+
+and done thats it!
+
+## 4. Deploy your project (Final Step)
+
+Click Deploy [Service] and Render will automatically compile and build your code from your new project
+
+then Once your service is successfully deployed, and now Render provides you with a live URL (e.g., XXXX-XXXXXX-XX.XXXX.onrender.com). Every time you push new changes to your connected Git branch, Render automatically triggers a new build and updates your live site with zero downtime
+
+now congrats you may able to execute the command either to ban or kick people from outside of discord!
+
+# Example:
+```
+curl -X POST "https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com/mod-command" -H "Content-Type: application/json" -d '{"password":"example123","action":"kick","user_id":"1234567890","reason":"Testing external mod"}'
+```
+
+```
+curl -X POST "https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com/mod-command" -H "Content-Type: application/json" -d '{"password":"example123","action":"ban","user_id":"1234567890","reason":"Testing external mod"}'
+```
 
 # Donations Support
 
