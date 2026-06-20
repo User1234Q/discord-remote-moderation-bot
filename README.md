@@ -254,7 +254,7 @@ curl -X POST "https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com/mod-command" -H "Conte
 curl -X POST "https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com/mod-command" -H "Content-Type: application/json" -d '{"password":"example123","action":"ban","user_id":"1234567890","reason":"Testing external mod"}'
 ```
 
-*(make sure to replace `https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com` to your actual hosted live site render and also user id, your actual secret passwort too)* 
+*(make sure to replace `https://XXXXXX-XXXX-XXXXXX-XXX.onrender.com` to your actual hosted live site render and also user id, your actual secret password too)* 
 
 # Donations Support
 
