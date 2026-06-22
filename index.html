@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Web Management Dashboard</title>
+    <style>
+        body { 
+            background-color: #313338; 
+            color: #dbdee1; 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .panel-wrapper { 
+            width: 100%;
+            max-width: 900px; 
+            background-color: #2b2d31; 
+            padding: 24px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        h2 { color: #f2f3f5; font-size: 20px; margin-bottom: 20px; font-weight: 600; }
+        h3 { color: #f2f3f5; font-size: 16px; margin-top: 30px; font-weight: 600; }
+        label { font-size: 11px; font-weight: bold; color: #b5bac1; text-transform: uppercase; display: block; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background-color: #1e1f22; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+        .password-input, .server-display { width: 100%; padding: 10px; background-color: #313338; border: 1px solid #1e1f22; color: #f2f3f5; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .password-input:focus { outline: none; border-color: #5865f2; }
+        table { width: 100%; border-collapse: collapse; }
+        th { color: #949ba4; font-size: 12px; text-transform: uppercase; padding: 10px; text-align: left; border-bottom: 1px solid #3f4147; letter-spacing: 0.5px; }
+        td { padding: 12px; border-bottom: 1px solid #3f4147; vertical-align: middle; }
+        tr:hover td { background-color: #35373c; }
+        .user-block { display: flex; align-items: center; gap: 10px; }
+        .discord-avatar { width: 32px; height: 32px; background-color: #5865f2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .user-name-text { color: #f2f3f5; font-size: 14px; font-weight: 500; }
+        .user-id-text { color: #949ba4; font-family: monospace; font-size: 13px; }
+        .action-container { display: flex; gap: 8px; width: 100%; }
+        .reason-box { background-color: #1e1f22; border: 1px solid #1e1f22; color: white; padding: 6px 12px; border-radius: 4px; flex-grow: 1; font-size: 13px; }
+        .reason-box:focus { outline: none; border-color: #5865f2; }
+        .panel-btn { padding: 8px 16px; border: none; border-radius: 3px; color: white; cursor: pointer; font-weight: 500; font-size: 14px; transition: background-color 0.2s; }
+        .btn-blurple { background-color: #5865f2; }
+        .btn-blurple:hover { background-color: #4752c4; }
+        .btn-danger { background-color: #da373c; }
+        .btn-danger:hover { background-color: #a92b2f; }
+    </style>
+    <script>
+        window.onload = function() {
+            const savedPass = localStorage.getItem('panel_pass') || '';
+            document.getElementById('pass-input').value = savedPass;
+            loadData();
+        };
+
+        function savePass(val) {
+            localStorage.setItem('panel_pass', val);
+            loadData();
+        }
+
+        async function loadData() {
+            const pass = document.getElementById('pass-input').value;
+            const res = await fetch(`/api/members?password=${encodeURIComponent(pass)}`);
+            
+            if (!res.ok) {
+                document.getElementById('server-name').value = "Unauthorized";
+                document.getElementById('member-list').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#949ba4;">Provide a valid API Password to display server data.</td></tr>`;
+                return;
+            }
+
+            const data = await res.json();
+            document.getElementById('server-name').value = data.serverName;
+
+            let rows = '';
+            data.members.forEach(member => {
+                rows += `
+                    <tr>
+                        <td>
+                            <div class="user-block">
+                                <div class="discord-avatar">${member.username.substring(0,2).toUpperCase()}</div>
+                                <span class="user-name-text">${member.username}</span>
+                            </div>
+                        </td>
+                        <td><span class="user-id-text">${member.id}</span></td>
+                        <td>
+                            <form onsubmit="submitMod(event, '${member.id}')" class="action-container">
+                                <input type="text" id="reason-${member.id}" placeholder="Reason for moderation..." required class="reason-box">
+                                <button type="submit" onclick="window.currentAction='kick'" class="panel-btn btn-blurple">Kick</button>
+                                <button type="submit" onclick="window.currentAction='ban'" class="panel-btn btn-danger">Ban</button>
+                            </form>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('member-list').innerHTML = rows || '<tr><td colspan="3" style="text-align:center; color:#949ba4;">No interactive members found.</td></tr>';
+        }
+
+        async function submitMod(event, userId) {
+            event.preventDefault();
+            const pass = document.getElementById('pass-input').value;
+            const reason = document.getElementById(`reason-${userId}`).value;
+            const action = window.currentAction;
+
+            const res = await fetch('/api/mod', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pass, action, user_id: userId, reason })
+            });
+
+            if (res.ok) {
+                alert(`Successfully execution: ${action} action applied.`);
+                loadData();
+            } else {
+                const text = await res.text();
+                alert(`Execution Error: ${text}`);
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="panel-wrapper">
+        <h2>🛡️ Server Management Panel</h2>
+        
+        <div class="top-bar">
+            <div>
+                <label>API Protection Password</label>
+                <input type="password" id="pass-input" placeholder="Enter key..." class="password-input" oninput="savePass(this.value)">
+            </div>
+            <div>
+                <label>Active Target Server</label>
+                <input type="text" id="server-name" value="Loading context..." readonly class="server-display" style="cursor: not-allowed; opacity: 0.6;">
+            </div>
+        </div>
+
+        <h3>Server Members</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>User ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="member-list">
+                <tr><td colspan="3" style="text-align:center; color:#949ba4;">Loading dashboard layout registry data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
