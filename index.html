@@ -6,13 +6,50 @@
     <title>Discord Web Management Dashboard</title>
     <style>
         body { 
+            font-family: 'gg sans', 'Noto Sans', sans-serif; 
             background-color: #313338; 
             color: #dbdee1; 
-            font-family: sans-serif; 
             margin: 0; 
-            padding: 40px;
+            padding: 0;
             display: flex;
-            justify-content: center;
+            height: 100vh;
+        }
+        /* Discord Left Server Bar Navigation */
+        .sidebar {
+            width: 240px;
+            background-color: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1f2023;
+            padding: 20px 10px;
+            box-sizing: border-box;
+        }
+        .sidebar h2 { font-size: 12px; text-transform: uppercase; color: #949ba4; letter-spacing: 0.5px; margin-bottom: 15px; padding-left: 8px;}
+        .server-item {
+            padding: 10px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #949ba4;
+            margin-bottom: 4px;
+            transition: background-color 0.2s, color 0.2s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .server-item:hover, .server-item.active {
+            background-color: #35373c;
+            color: #f2f3f5;
+        }
+        .server-item.active { background-color: #404249; font-weight: 600; }
+        
+        /* Main Action Frame Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: #313338;
         }
         .panel-wrapper { 
             width: 100%;
@@ -22,56 +59,86 @@
             border-radius: 8px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
         }
-        h2 { color: #f2f3f5; font-size: 20px; margin-bottom: 20px; font-weight: 600; }
-        h3 { color: #f2f3f5; font-size: 16px; margin-top: 30px; font-weight: 600; }
+        .top-bar { background-color: #1e1f22; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
         label { font-size: 11px; font-weight: bold; color: #b5bac1; text-transform: uppercase; display: block; margin-bottom: 8px; letter-spacing: 0.5px; }
-        .top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background-color: #1e1f22; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
-        .password-input, .server-display { width: 100%; padding: 10px; background-color: #313338; border: 1px solid #1e1f22; color: #f2f3f5; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .password-input { width: 100%; max-width: 300px; padding: 10px; background-color: #313338; border: 1px solid #1e1f22; color: #f2f3f5; border-radius: 4px; font-size: 14px; }
         .password-input:focus { outline: none; border-color: #5865f2; }
+        
+        h3 { color: #f2f3f5; font-size: 16px; margin-top: 30px; font-weight: 600; }
         table { width: 100%; border-collapse: collapse; }
-        th { color: #949ba4; font-size: 12px; text-transform: uppercase; padding: 10px; text-align: left; border-bottom: 1px solid #3f4147; letter-spacing: 0.5px; }
+        th { color: #949ba4; font-size: 12px; text-transform: uppercase; padding: 10px; text-align: left; border-bottom: 1px solid #3f4147; }
         td { padding: 12px; border-bottom: 1px solid #3f4147; vertical-align: middle; }
         tr:hover td { background-color: #35373c; }
+        
         .user-block { display: flex; align-items: center; gap: 10px; }
         .discord-avatar { width: 32px; height: 32px; background-color: #5865f2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
         .user-name-text { color: #f2f3f5; font-size: 14px; font-weight: 500; }
         .user-id-text { color: #949ba4; font-family: monospace; font-size: 13px; }
+        
         .action-container { display: flex; gap: 8px; width: 100%; }
         .reason-box { background-color: #1e1f22; border: 1px solid #1e1f22; color: white; padding: 6px 12px; border-radius: 4px; flex-grow: 1; font-size: 13px; }
         .reason-box:focus { outline: none; border-color: #5865f2; }
-        .panel-btn { padding: 8px 16px; border: none; border-radius: 3px; color: white; cursor: pointer; font-weight: 500; font-size: 14px; transition: background-color 0.2s; }
+        
+        .panel-btn { padding: 8px 16px; border: none; border-radius: 3px; color: white; cursor: pointer; font-weight: 500; font-size: 14px; }
         .btn-blurple { background-color: #5865f2; }
         .btn-blurple:hover { background-color: #4752c4; }
         .btn-danger { background-color: #da373c; }
         .btn-danger:hover { background-color: #a92b2f; }
     </style>
     <script>
+        let selectedGuildId = '';
+
         window.onload = function() {
             const savedPass = localStorage.getItem('panel_pass') || '';
             document.getElementById('pass-input').value = savedPass;
-            loadData();
+            loadGuilds();
         };
 
         function savePass(val) {
             localStorage.setItem('panel_pass', val);
-            loadData();
+            loadGuilds();
         }
 
-        async function loadData() {
+        async function loadGuilds() {
             const pass = document.getElementById('pass-input').value;
-            const res = await fetch(`/api/members?password=${encodeURIComponent(pass)}`);
+            const res = await fetch(`/api/guilds?password=${encodeURIComponent(pass)}`);
             
             if (!res.ok) {
-                document.getElementById('server-name').value = "Unauthorized";
-                document.getElementById('member-list').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#949ba4;">Provide a valid API Password to display server data.</td></tr>`;
+                document.getElementById('server-list-container').innerHTML = '';
+                document.getElementById('member-list').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#949ba4;">Provide a valid API Password to look up server data.</td></tr>`;
                 return;
             }
 
-            const data = await res.json();
-            document.getElementById('server-name').value = data.serverName;
+            const guilds = await res.json();
+            let sidebarHtml = '<h2>Guild Registries</h2>';
+            guilds.forEach((guild, idx) => {
+                // Auto-select the first server in the cache if none is selected
+                if (!selectedGuildId && idx === 0) selectedGuildId = guild.id;
+                const activeClass = guild.id === selectedGuildId ? 'active' : '';
+                sidebarHtml += `<div class="server-item ${activeClass}" onclick="selectGuild('${guild.id}')">${guild.name}</div>`;
+            });
+            
+            document.getElementById('server-list-container').innerHTML = sidebarHtml;
+            if (selectedGuildId) loadMembers();
+        }
 
+        function selectGuild(guildId) {
+            selectedGuildId = guildId;
+            document.querySelectorAll('.server-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+            loadMembers();
+        }
+
+        async function loadMembers() {
+            const pass = document.getElementById('pass-input').value;
+            if (!selectedGuildId) return;
+
+            const res = await fetch(`/api/members?password=${encodeURIComponent(pass)}&guild_id=${selectedGuildId}`);
+            if (!res.ok) return;
+
+            const members = await res.json();
             let rows = '';
-            data.members.forEach(member => {
+            members.forEach(member => {
                 rows += `
                     <tr>
                         <td>
@@ -91,7 +158,7 @@
                     </tr>
                 `;
             });
-            document.getElementById('member-list').innerHTML = rows || '<tr><td colspan="3" style="text-align:center; color:#949ba4;">No interactive members found.</td></tr>';
+            document.getElementById('member-list').innerHTML = rows || '<tr><td colspan="3" style="text-align:center; color:#949ba4;">No active members found.</td></tr>';
         }
 
         async function submitMod(event, userId) {
@@ -103,12 +170,12 @@
             const res = await fetch('/api/mod', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pass, action, user_id: userId, reason })
+                body: JSON.stringify({ password: pass, action, guild_id: selectedGuildId, user_id: userId, reason })
             });
 
             if (res.ok) {
-                alert(`Successfully execution: ${action} action applied.`);
-                loadData();
+                alert(`Execution Action: user successfully ${action}ed.`);
+                loadMembers();
             } else {
                 const text = await res.text();
                 alert(`Execution Error: ${text}`);
@@ -117,33 +184,35 @@
     </script>
 </head>
 <body>
-    <div class="panel-wrapper">
-        <h2>🛡️ Server Management Panel</h2>
-        
-        <div class="top-bar">
-            <div>
-                <label>API Protection Password</label>
-                <input type="password" id="pass-input" placeholder="Enter key..." class="password-input" oninput="savePass(this.value)">
-            </div>
-            <div>
-                <label>Active Target Server</label>
-                <input type="text" id="server-name" value="Loading context..." readonly class="server-display" style="cursor: not-allowed; opacity: 0.6;">
-            </div>
-        </div>
+    <!-- Server Sidebar Display -->
+    <div class="sidebar" id="server-list-container">
+        <h2>Guild Registries</h2>
+    </div>
 
-        <h3>Server Members</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>User ID</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="member-list">
-                <tr><td colspan="3" style="text-align:center; color:#949ba4;">Loading dashboard layout registry data...</td></tr>
-            </tbody>
-        </table>
+    <!-- Right-Hand Content Area -->
+    <div class="main-content">
+        <div class="panel-wrapper">
+            <h2>🛡️ Server Management Panel</h2>
+            
+            <div class="top-bar">
+                <label>API Protection Password</label>
+                <input type="password" id="pass-input" placeholder="Enter security password key..." class="password-input" oninput="savePass(this.value)">
+            </div>
+
+            <h3>Active Server Members</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>User ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="member-list">
+                    <tr><td colspan="3" style="text-align:center; color:#949ba4;">Enter API password to connect application registry...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>
