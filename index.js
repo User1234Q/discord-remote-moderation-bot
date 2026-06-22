@@ -1,11 +1,11 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 
-// Initialize the Discord Client
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -13,50 +13,61 @@ const client = new Client({
     ]
 });
 
-// 1. Web API listener for your external commands
-app.get('/', (req, res) => res.send('Bot connection interface is active!'));
+// Serve the clean HTML5 visual page file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-app.post('/mod-command', async (req, res) => {
-    const { password, action, user_id, reason } = req.body;
-    const modReason = reason || "Executed via external command";
-
-    // Security password check
+// JSON API Endpoint to fetch server context securely
+app.get('/api/members', async (req, res) => {
+    const { password } = req.query;
     if (password !== process.env.SECRET_PASSWORD) {
-        return res.status(403).json({ error: "Unauthorized" });
+        return res.status(401).json({ error: "Unauthorized" });
     }
 
     try {
-        // Fetch the server using your Guild ID
-        const guild = await client.guilds.fetch(process.env.GUILD_ID);
+        const guild = client.guilds.cache.get(process.env.GUILD_ID) || await client.guilds.fetch(process.env.GUILD_ID).catch(() => null);
+        if (!guild) return res.status(404).json({ error: "Guild not found" });
 
-             if (action === 'kick') {
-            // First look in the local cache instantly, fallback to a fetch only if needed
-            let member = guild.members.cache.get(user_id);
-            if (!member) member = await guild.members.fetch(user_id);
-            
-            await member.kick(modReason);
-            return res.status(200).json({ status: `Successfully kicked user ${user_id}` });
-        }
-        else if (action === 'ban') {
-            // Bans directly by user ID, even if they aren't in the server
-            await guild.members.ban(user_id, { reason: modReason });
-            return res.status(200).json({ status: `Successfully banned user ${user_id}` });
-        }
+        const membersFetch = await guild.members.fetch().catch(() => []);
+        const membersList = [];
 
-        return res.status(400).json({ error: "Invalid action type. Use 'kick' or 'ban'" });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
+        membersFetch.forEach(member => {
+            if (member.user.bot) return;
+            membersList.push({ id: member.id, username: member.user.username });
+        });
+
+        res.json({ serverName: guild.name, members: membersList });
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 });
 
-// 2. Discord event listener
-client.once('ready', () => {
-    console.log(`🤖 Logged into Discord as ${client.user.tag}!`);
-    
-    // Start web listener on the port Render gives us
-    const port = process.env.PORT || 8080;
-    app.listen(port, () => console.log(`🌍 External terminal web listener active on port ${port}`));
+// JSON API Endpoint to handle action submissions dynamically
+app.post('/api/mod', async (req, res) => {
+    const { password, action, user_id, reason } = req.body;
+    if (password !== process.env.SECRET_PASSWORD) {
+        return res.status(403).send("Invalid API Password");
+    }
+
+    try {
+        const guild = await client.guilds.fetch(process.env.GUILD_ID);
+        if (action === 'kick') {
+            let member = guild.members.cache.get(user_id) || await guild.members.fetch(user_id);
+            await member.kick(reason);
+        } else if (action === 'ban') {
+            await guild.members.ban(user_id, { reason });
+        }
+        res.status(200).send("Success");
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
 });
 
-// Log the bot into Discord
+client.once('ready', () => {
+    console.log(`🤖 Logged into Discord as ${client.user.tag}!`);
+    const port = process.env.PORT || 10000;
+    app.listen(port, () => console.log(`🌍 HTML5 Dashboard engine active on port ${port}`));
+});
+
 client.login(process.env.DISCORD_TOKEN);
