@@ -1,7 +1,7 @@
 {
   "name": "discord-bot-project",
   "version": "1.0.0",
-  "description": "Discord bot with external kick and ban commands",
+  "description": "Discord bot with a clean HTML5 admin panel",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
