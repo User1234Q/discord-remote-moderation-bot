@@ -13,45 +13,59 @@ const client = new Client({
     ]
 });
 
-// Serve the clean HTML5 visual page file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// JSON API Endpoint to fetch server context securely
-app.get('/api/members', async (req, res) => {
+// Endpoint 1: Fetch ALL servers the bot is currently running inside
+app.get('/api/guilds', (req, res) => {
     const { password } = req.query;
     if (password !== process.env.SECRET_PASSWORD) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
-    try {
-        const guild = client.guilds.cache.get(process.env.GUILD_ID) || await client.guilds.fetch(process.env.GUILD_ID).catch(() => null);
-        if (!guild) return res.status(404).json({ error: "Guild not found" });
+    const guildList = [];
+    client.guilds.cache.forEach(guild => {
+        guildList.push({ id: guild.id, name: guild.name });
+    });
 
-        const membersFetch = await guild.members.fetch().catch(() => []);
+    res.json(guildList);
+});
+
+// Endpoint 2: Fetch members specifically for the selected server tab click
+app.get('/api/members', async (req, res) => {
+    const { password, guild_id } = req.query;
+    if (password !== process.env.SECRET_PASSWORD) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+        const guild = client.guilds.cache.get(guild_id) || await client.guilds.fetch(guild_id).catch(() => null);
+        if (!guild) return res.status(404).json({ error: "Server context missing" });
+
+        const fetchedMembers = await guild.members.fetch().catch(() => []);
         const membersList = [];
 
-        membersFetch.forEach(member => {
+        fetchedMembers.forEach(member => {
             if (member.user.bot) return;
             membersList.push({ id: member.id, username: member.user.username });
         });
 
-        res.json({ serverName: guild.name, members: membersList });
+        res.json(membersList);
     } catch (err) {
         res.status(500).send(err.message);
     }
 });
 
-// JSON API Endpoint to handle action submissions dynamically
+// Endpoint 3: Handle execution on the dynamically selected guild ID
 app.post('/api/mod', async (req, res) => {
-    const { password, action, user_id, reason } = req.body;
+    const { password, action, guild_id, user_id, reason } = req.body;
     if (password !== process.env.SECRET_PASSWORD) {
         return res.status(403).send("Invalid API Password");
     }
 
     try {
-        const guild = await client.guilds.fetch(process.env.GUILD_ID);
+        const guild = await client.guilds.fetch(guild_id);
         if (action === 'kick') {
             let member = guild.members.cache.get(user_id) || await guild.members.fetch(user_id);
             await member.kick(reason);
@@ -67,7 +81,7 @@ app.post('/api/mod', async (req, res) => {
 client.once('ready', () => {
     console.log(`🤖 Logged into Discord as ${client.user.tag}!`);
     const port = process.env.PORT || 10000;
-    app.listen(port, () => console.log(`🌍 HTML5 Dashboard engine active on port ${port}`));
+    app.listen(port, () => console.log(`🌍 Dynamic Dashboard running on port ${port}`));
 });
 
 client.login(process.env.DISCORD_TOKEN);
